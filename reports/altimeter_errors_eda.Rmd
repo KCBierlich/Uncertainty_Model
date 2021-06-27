@@ -1,0 +1,129 @@
+---
+title: "EDA for altimeter error models"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, cache = FALSE, message = FALSE, 
+                      warning = FALSE)
+```
+
+```{r compute_errors}
+loadd(APE_filtered)
+loadd(Sw)
+loadd(Iw)
+loadd(training_obj)
+
+df = APE_filtered %>% 
+  dplyr::mutate(
+    pixSw = RRR.pix * Sw,
+    # empirical estimate for true image altitude
+    Altitude_Imputed = training_obj$Length * Iw * Focal.length / pixSw,
+    # imputed altimeter errors
+    Baro_error = Baro...Ht - Altitude_Imputed,
+    Laser_error = Laser_Alt - Altitude_Imputed,
+    # additional information
+    Flight = Flight
+  ) %>% 
+  #  reformat for plotting
+  dplyr::select(Baro_error, Laser_error, Altitude_Imputed, Flight) %>% 
+  pivot_longer(cols = c('Baro_error', 'Laser_error'), 
+               names_to = 'Altimeter', values_to = 'Error')
+```
+
+# Measurement error models
+
+A brief study of properties that we would observe in exploratory analyses of altimeter errors, depending on the theoretical distribution used to model altimeter errors.
+
+## Normally distributed errors
+
+If altimeter errors vary with altitude in a normally-distributed way, then the observed altitudes may be modeled such that
+$$
+  a' = a + \varepsilon, \\
+  \varepsilon = \beta_0 + \beta_1 a + \eta, \\
+  \eta \sim \mathcal N(0, \sigma^2),
+$$
+where $a'$ is the observed altitude, $a$ is the true altitude, and $\varepsilon$ is the random component of the measurement error.  Here, the random component includes a constant bias $\beta_0$, linear dependence on the true altitude $a$ via $\beta_1$, and altitude-independent random variability $\eta$.  Random effects can be used to allow the error parameters to vary between altimeter type (e.g., laser/barometer), drone platform, flight, etc.  
+
+The resulting measurement error $a'-a = \beta_0 + \beta_1 a + \eta$ has a mean that can linearly depend on altitude, but has constant variance wrt. altitude, as seen via
+$$
+  E(a' - a) = \beta_0 + \beta_1 a, \\
+  V(a' - a) = \sigma^2.
+$$
+The relative measurement error $(a'-a)/a = \beta_0 / a + \beta_1 + \eta /a$ has a mean that can be inversely-proportional wrt altitude, and variance that exhibits an inverse-square law wrt altitude, as seen via
+$$
+  E\left(\frac{a'-a}{a}\right) = \frac{\beta_0}{a} + \beta_1, \\
+  V\left(\frac{a'-a}{a}\right) = \frac{\sigma^2}{a^2}.
+$$
+
+
+## Log-normally distributed errors
+
+If altimeter errors vary with altitude in a log-normally distributed way (i.e., in a multiplicative fashion), then the observed altitudes may be modeled such that
+$$
+  a' = \exp\{\log a + \varepsilon\} = a \exp\{\varepsilon\}, \\
+  \varepsilon = \beta_0 + \beta_1 a + \eta, \\
+  \eta \sim \mathcal N(0, \sigma^2),
+$$
+where $a'$ is the observed altitude, $a$ is the true altitude, and $\varepsilon$ is the random component of the measurement error.  The random component includes similar terms as before, but their effect on $a'$ is multiplicative, rather than additive.  The random component $\varepsilon$ could be modified to depend on $\log a$ rather than $a$, but this negligibly changes the rest of the discussion.
+
+The resulting measurement error $a'-a = a(\exp\{\beta_0 + \beta_1a +\eta \} - 1)$ has a mean that can linearly or non-linearly depend on altitude, if $\beta_1=0$ or not, respectively, and a variance that can have quadratically increasing or complex dependence on altitude, if $\beta_1=0$ or not, respectively, as seen via
+$$
+  E(a'-a) = a\left(\exp\left\{
+    \beta_0 + \beta_1a + \sigma^2/2
+    \right\} - 1\right), \\
+  V(a'-a) = a^2 
+    \left(\exp\left\{\sigma^2\right\} - 1\right) 
+    \exp\left\{2\beta_0 + 2\beta_1 a + \sigma^2\right\}.
+$$
+
+The relative measurement error $(a'-a)/a = \exp\{\beta_0 + \beta_1a +\eta \} - 1$ has a mean that is constant or nonlinearly depends on altitude, if $\beta_1=0$ or not, respectively, and a variance that has similar properties, as seen via
+$$
+  E\left(\frac{a'-a}{a}\right) = \exp\left\{
+    \beta_0 + \beta_1a + \sigma^2/2
+  \right\} - 1, \\
+  V\left(\frac{a'-a}{a}\right) = \left(\exp\left\{\sigma^2\right\} - 1\right)
+    \exp\left\{ 2\beta_0 + 2\beta_1 a + \sigma^2 \right\}.
+$$
+
+
+# Exploration of measurement errors
+
+From the training data, we can assume the pixel counts are correct and use the known object length with the GSD equation to derive an empirical estimate of the unknown, true altitude.  From this, we can compute empirical measurements of the altimeter error in each image.
+
+
+## Graphical comparisons
+
+While exploratory plots seem to support both models, the trends in the plots seem complicated enough to suggest that log-normal errors may be more appropriate.
+
+```{r errors, fig.cap='Figure 1. Errors have a reasonably-linear trend with respect to altitude, and at most some evidence for decreasing constant variance with respect to altitude (Alta_F1 Barometer/Laser, and LemHex-F1 Laser).  If variance decreases with respect to altitude, this property is only feasible with log-normally distributed errors.'}
+ ggplot(df, aes(x = Altitude_Imputed, y = Error)) + 
+        geom_point() +
+        scale_color_brewer(type = 'qual', palette = 'Dark2') +
+        # geom_smooth(method = 'lm', formula = y ~ x ) +
+        geom_hline(yintercept = 0, lty = 3) +
+        facet_grid(Altimeter~Flight, scales = 'free') +
+        xlab('Empirical altitude est. (m)') +
+        ylab('Sensor error (m)') +
+        theme_few()
+```
+
+
+```{r relative_errors, fig.cap='Figure 2. Relative errors have some sort of complicated mean relationship with altitude, and some evidence for decreasing variability with altitude.  Such properties are feasible with normally-distributed errors, and log-normally distributed errors.'}
+ ggplot(df, aes(x = Altitude_Imputed, y = Error/Altitude_Imputed*100)) +
+   geom_point() +
+   scale_color_brewer(type = 'qual', palette = 'Dark2') +
+   # geom_smooth(method = 'lm') +
+   geom_hline(yintercept = 0, lty = 3) +
+   facet_grid(Altimeter~Flight, scales = 'free') +
+   xlab('Empirical altitude est. (m)') +
+   ylab('Relative sensor error\n(% Imputed altitude)') +
+   theme_few()
+```
+

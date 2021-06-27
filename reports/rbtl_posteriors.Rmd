@@ -1,0 +1,286 @@
+---
+title: "Posterior report for RB/TL modeling"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      number_sections: true
+params:
+  samples: output/mcmc/fit_marrs.rds
+  nburn: 1e2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, cache = FALSE, message = FALSE, 
+                      warning = FALSE)
+```
+
+```{r packages}
+## Load your packages, e.g. library(drake).
+source(file.path('..', "packages.R"))
+
+## Load your R files and subplans
+invisible(lapply(list.files(file.path("..", "R"), full.names = TRUE, recursive = TRUE), source))
+
+source(file.path('..', 'R', 'plan.R'))
+```
+
+
+# Overview
+
+We are working within a hierarchical Bayesian framework, which lets us draw population-level inference on morphological relationships while comprehensively accounting for photographic measurement errors.  Morphological relationships are simultaneously estimated with photographically-derived measurements, rather than in two stages, in which physical measurements are first extracted from photographs and then used to estimate morphological relationships (possibly incorporating measurement error through bootstrapping procedures).
+
+The hierarchical Bayesian framework also naturally allows complex correlations and dependences between the measurement error parameters to be accounted for during estimation.  Lastly, the hierarchical Bayesian framework also allows repeated observations of the same lengths to be directly incorporated, rather than being manually averaged or otherwise summarized before analysis.  Many of these topics have been addressed earlier.
+
+Here, we demonstrate how to use our model to estimate standard morphological relationships between a whale's total length (TL) and its rostrum-to-blowhole distance (RB).  Within our hierarchical Bayesian framework, the morphological model replaces the independent prior distribution for the unknown lengths, which are still estimated with respect to photogrametric measurement errors.  The independent length priors must be replaced to allow the hierarchical Bayesian framework to estimate the explicit population-level relationships being studied.  We can demonstrate in the results section that the model at most negligibly impacts individual length estimates.
+
+
+# Morphological Model
+
+We specify the model conditionally and use diagnostics to discuss model fit.  The prior distribution restricts the support of measurements and parameters, but is otherwise uninformative.  The restricted ranges are also large enough to be practically uninformative.  
+
+We assume RB measurements are linearly-related to TL measurements.  The $i$th RB measurement $\text{(RB)}_i$ is modeled as a truncated normal random variable with location parameter $\mu_i$ and scale parameter $\sigma^2_{RB}$ via
+$$
+  \text{(RB)}_i \vert \mu_i, \sigma^2_{RB} \sim 
+    \text{trunc-}\mathcal{N}(\mu_i, \sigma_{RB}^2; 0, 30), \\
+  \mu_i = \beta_1 + \beta_2 \text{(TL)}_i.
+$$
+The location $\mu_i$ models the morphological relationship between $\text{(RB)}_i$ and $\text{(TL)}_i$, and the scale $\sigma^2_{RB}$ quantifies the amount of population-level variability around the morphological relationship.  The support for $\text{(RB)}_i$ is restricted to a large, but physically sensible range.
+
+The prior distribution for the morphological relationship is designed to be largely uninformative via
+$$
+  \beta_1 \sim \text{U}(-3, 30), \\
+  \beta_2 \sim \text{Beta}(1,1), \\
+  \sigma^2_{RB} \sim \text{Inv-Gamma}(.01, 100).
+$$
+If there were no population-level relationship between RB and TL measurements, the intercept $\beta_1$ would correspond to a population-level average RB measurement.  The slope $\beta_2$ quantifies the population-level ratio between RB and TL, which is a priori known to be less than 1 since TL is a whale's largest length measurement.  The prior distribution for $\sigma^2_{RB}$ is uninformative.
+
+The TL measurements are modeled as truncated normal random variables with location parameter $\mu_{TL}$ and scale parameter $\sigma^2_{TL}$.  The truncation is wide enough so that the location $\mu_{TL}$ describes the population-level mean TL value well, and the scale $\sigma^2_{TL}$ quantifies the amount of population-level variability around the mean.  Within our context, both parameters $\mu_{TL}$ and $\sigma^2_{TL}$ are modeled with uninformative priors.
+$$
+  \text{(TL)}_i \vert \mu_{TL}, \sigma^2_{TL} \sim \text{trunc-}\mathcal{N}(\mu_{TL}, \sigma_{TL}^2; 0, 30), \\
+  \mu_{TL} \sim \text{U}(0, 30), \\
+  \sigma^2_{TL} \sim \text{Inv-Gamma}(.01, 100)
+$$
+
+
+# Results
+
+
+## Exploratory support for linear form
+
+```{r exploratory, fig.cap='Empirical RB and TL estimates modeled with a standard linear regression provide evidence for a linear population-level relationship.'}
+
+loadd(Marrs_filtered)
+
+df0 = Marrs_filtered %>% 
+  dplyr::group_by(AID) %>%
+  dplyr::summarise(TL = mean(TL), RB = mean(RB))
+
+fit.empirical = lm(RB ~ TL, df0)
+
+ggplot(df0, aes(x = TL, y = RB)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm', se = TRUE, col = 'black', lwd = .5) + 
+  theme_few() + 
+  theme(panel.border = element_blank())
+```
+
+```{r empirical_summary}
+print('Summary of fitted line')
+summary(fit.empirical)
+print('CI for fitted parameters')
+round(confint(fit.empirical), 2)
+```
+
+## Fit to estimated lengths
+
+```{r fit_to_estimates, fig.cap='Posterior diagnostics show that the posterior length estimates align well with the empirical length estimates, so we use this to confirm that the model is adequately estimating lengths.'}
+loadd(Marrs_filtered)
+length_samples_marrs = readRDS(file.path('..', readd(length_samples_marrs)))
+loadd(nburn)
+
+burn = 1:nburn
+
+df = do.call(rbind, lapply(length_samples_marrs$samples, function(s) {
+  hpds = HPDinterval(mcmc(s[-burn,]))
+  data.frame(
+    est = colMeans(s[-burn,]),
+    lwr = hpds[, 'lower'],
+    upr = hpds[, 'upper'], 
+    Measurement = colnames(s)
+  )
+}))
+
+df$AID = rep(names(length_samples_marrs$samples), 
+             rep(2, length(length_samples_marrs$samples)))
+
+
+
+df.empirical = Marrs_filtered %>% 
+  dplyr::mutate(Altimeter = 
+           ifelse(is.finite(BaroAlt) & is.finite(LaserAlt), 
+                  'Barometer+Laser', 
+                  ifelse(is.finite(BaroAlt), 'Barometer', 'Laser'))
+        ) %>%
+  pivot_longer(cols = c('TL', 'RB'), 
+               names_to = 'Measurement', 
+               values_to = 'empirical_est') %>% 
+  dplyr::select(AID, Measurement, empirical_est, Altimeter)
+
+ggplot(df %>% left_join(df.empirical), 
+       aes(x = empirical_est, y = est, ymin = lwr, ymax = upr, 
+           col = Altimeter)) + 
+  geom_abline(slope = 1, intercept = 0, lty = 3) +
+  scale_color_brewer('Altimeters available', 
+                     type = 'qual', palette = 'Dark2') + 
+  geom_pointrange() + 
+  xlab('Empirical estimate (m)') + 
+  ylab('Modeled estimate (m)') + 
+  facet_wrap(~Measurement, scales = 'free') +
+  theme_few() 
+  
+```
+
+
+
+## Posteriors for population level parameters
+
+```{r load_key_posteriors}
+mcout = readRDS(file.path('..', params$samples))
+
+tgt = c('beta[1]', 'beta[2]', 'beta[3]', 'sigma_rbh', 'sigma_tl')
+
+m = mcmc(mcout$samples[-burn, tgt])
+
+# realign names
+colnames(m)[3:5] = c('mu[TL]', 'sigma^2[RB]', 'sigma^2[TL]')
+```
+
+```{r posterior_summaries}
+print('Posterior summaries')
+summary(m)
+```
+
+```{r hpd_intervals}
+print('HPD intervals')
+round(HPDinterval(m), 2)
+```
+
+```{r ess_ar}
+print("Effective sample sizes")
+round(effectiveSize(m))
+
+print("Acceptance rates")
+round(1-rejectionRate(m),2)
+```
+
+```{r marginal_posteriors, fig.cap='The marginal posteriors suggest that all population-level relationships are precisely identified by the data.  The scale parameters additionally suggest that the mean values summarize the population-level values fairly closely.'}
+ggplot(data.frame(m) %>% pivot_longer(everything()), aes(x = value)) + 
+  stat_density(geom = 'line') + 
+  facet_wrap(~name, scales = 'free') + 
+  xlab('Value') + 
+  ylab('Density') +
+  ggtitle('Marginial posterior density estimates') + 
+  theme_few()
+```
+
+```{r joint_posterior, fig.cap='Strong posterior correlation between regression parameters, as expected.  However, there is still strong posterior concentration in one region, which helps identify the population-level relationship.'}
+ggplot(data.frame(m), aes(x = beta.1., y = beta.2.)) + 
+  geom_point() + 
+  stat_density_2d(col = 'grey60') + 
+  xlab(expression(beta[1])) + 
+  ylab(expression(beta[2])) + 
+  theme_few() + 
+  theme(axis.title.y = element_text(angle = 0, vjust = 0.5))
+
+```
+
+
+## Fit to population level model
+
+In this example, the empirical and Bayesian estimates are nearly identical.  As anticipated, the Bayesian estimates have slightly larger uncertainty since the Bayesian estimates account for uncertainty due to measurement error. 
+
+```{r rb_tl_fit, fig.cap='Posterior estimates of RB and TL, along with their marginal 95\\% HPD interval boundaries plotted against the posterior mean and confidence band for the population-level morphological relationship.  The empirical estimate of the morphological relationship is overlaid in blue---the results are nearly identical.'}
+df2 = df %>%
+  pivot_wider(names_from = Measurement, values_from = c(est, lwr, upr))
+
+xseq = seq(from = min(df2$lwr_TL), to = max(df2$upr_TL), length.out = 100)
+a = 0
+b = 30
+Z = pnorm(b) - pnorm(a)
+mcmc.means = mcmc(t(apply(m, 1, function(r) {
+  mu = r['beta[1]'] + r['beta[2]'] * xseq
+  sigma = r['sigma^2[RB]']
+  mu + (dnorm(a) - dnorm(b))/Z * sigma
+})))
+
+hpd.means = HPDinterval(mcmc.means)
+
+df.cipoly = data.frame(
+  x = c(xseq, rev(xseq)),
+  y = c(hpd.means[, 'upper'], rev(hpd.means[, 'lower']))
+)
+
+df.mean = data.frame(
+  TL = xseq,
+  RB = colMeans(mcmc.means)
+)
+
+ggplot(df2, aes(x = est_TL, y = est_RB)) + 
+  geom_polygon(mapping = aes(x=x, y=y), data = df.cipoly, inherit.aes = FALSE,
+             alpha = .3) + 
+  xlab('TL') + 
+  ylab('RB') + 
+  geom_line(mapping = aes(x = TL, y = RB), data = df.mean, 
+            inherit.aes = FALSE, lwd = 0.5) + 
+  geom_pointrange(aes(ymin = lwr_RB, ymax = upr_RB)) + 
+  geom_errorbarh(aes(xmin = lwr_TL, xmax = upr_TL)) + 
+  geom_smooth(method = 'lm', fill = 'blue', data = df0, 
+              mapping = aes(x = TL, y = RB), inherit.aes = FALSE)  +
+  ggtitle('Posterior mean RB/TL measurements and mean linear relationship') + 
+  theme_few()
+```
+
+
+Figure 7 for MEPS
+```{r}
+library(ggpubr)
+est_fig <- ggplot(df2, aes(x = est_TL, y = est_RB)) + geom_point() +
+  geom_polygon(mapping = aes(x=x, y=y), data = df.cipoly, inherit.aes = FALSE,
+            alpha = .3) + 
+  xlab('TL') + 
+  ylab('RB') + 
+  geom_line(mapping = aes(x = TL, y = RB), data = df.mean, 
+            inherit.aes = FALSE, lwd = 0.5) + 
+  geom_pointrange(aes(ymin = lwr_RB, ymax = upr_RB)) + 
+  geom_errorbarh(aes(xmin = lwr_TL, xmax = upr_TL)) + 
+  ylab("predicted RB (m)") + 
+  xlab("predicted TL (m)") + 
+  #geom_smooth(method = 'lm', fill = 'blue')  +
+  #ggtitle('Posterior mean RB/TL measurements and mean linear relationship') + 
+  theme_few()
+
+slope_fig <- ggplot(data.frame(m), aes(x = beta.1., y = beta.2.)) + 
+  geom_point() + 
+  stat_density_2d(col = 'grey60') + 
+  xlab(expression(beta[1])) + 
+  ylab(expression(beta[2])) + 
+  theme_few() + 
+  theme(axis.title.y = element_text(angle = 0, vjust = 0.5))
+ggarrange(est_fig, slope_fig, ncol = 1, labels = 'AUTO') 
+ggsave(file.path("..", "figures", "AMW_RBTL.jpg"), width = 7, height = 7)
+
+```
+
+
+## Traceplots
+
+```{r fig.cap='The chains have appeared to converge, but the betas are mixing slowly'}
+plot(m)
+```
+
+# Parting thoughts
+
+While the measurement error model does not impact the scientific findings, the Bayesian framework is still worth considering.  Perhaps somewhat novel is the Bayesian framework's ability to incorporate altitude measurements from multiple altimeters and handle missing data (23\% of images lack Laser altimeter readings).  Previous work incorporates measurements from repeated observations of whales, and we do the same here (33\% of the whales in this study were measured more than once).  The framework also lets us comprehensively quantify and propagate uncertainty and errors through multiple sources, such as from altimeter uncertainty, multiple observations, multiple image reviewers (though we don't have enough variability to need to do this here), and from population-level variability.  As more data collection and modeling challenges arise, it can become increasingly difficult to propagate uncertanties outside of such a framework with confidence.

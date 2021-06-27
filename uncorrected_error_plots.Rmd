@@ -1,0 +1,187 @@
+---
+title: 'uncorrected_Error_plots'
+author: "KCB"
+date: "11/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+### Data Setup 
+```{r, include = FALSE}
+# Packages
+library(ggplot2)
+library("ggpubr")
+```
+
+```{r}
+# import training data
+
+APE <- read.csv(file.path("data", "APE-Dataset.csv"))
+
+print(paste("Number of data points in dataset = ", nrow((APE))))
+APE %>% dplyr::filter(Measurer == "KCB") %>% summarise(n())
+
+# Identify NAs
+nas <- APE[is.na(APE$Altitude),] 
+# Remove NAs
+APE <- APE[!is.na(APE$Altitude),]  # Remove all rows with "NA" in column "Altitude"
+# Print number of NAs removed
+print(paste("Number of NAs REMOVED in dataset = ", nrow((nas))))
+print(paste("Number of data points remaining in dataset = ", nrow(APE)))
+
+
+# Define Variables
+APE$TL <- (APE$Altitude/APE$Focal.length) * APE$Pix.Dim * APE$RRR.pix  # Total Length (m)
+APE$Xerror <- ((APE$TL - 1.48)/1.48) * 100     # uncorrected percent error
+APE$platform <- paste(APE$Aircraft, APE$Altimeter, sep = "-")   # Make new column as "aircraft-altimeter"
+
+
+# Subset barometer and laser 
+baro <- APE[APE$Altimeter == "Barometer", c("TL", "Aircraft", "Altitude", "Altimeter", "Position","Xerror")]
+laser <- APE[APE$Altimeter == "Laser", c("TL",  "Aircraft", "Altitude", "Altimeter", "Position", "Xerror")]
+
+```
+
+  
+## % Error
+```{r}
+
+uas_levels <- c("Alta-50mm","Alta-35mm", "LemHex", "Cinestar", "P3Std", "P4Pro", "P4Pro-video")
+APE$Aircraft <- factor(APE$Aircraft, levels = uas_levels)
+
+# number of images used.
+APE %>% dplyr::filter(Measurer == "KCB") %>% group_by(Aircraft, Altimeter) %>% summarise(n())
+
+## BOXPLOT % ERROR
+ggplot(APE, aes(x = Aircraft, y = Xerror, color = Altimeter)) + geom_boxplot() + 
+  labs(x = "", y = "uncorrected % error")   + #ylim(-60, 60) + 
+  geom_abline(aes(intercept= 0 , slope=0), lty = 2, alpha = 0.75) +
+  scale_y_continuous(breaks = seq(-60, 60, by = 10)) +
+  geom_abline(aes(intercept = -5, slope=0), lty = 2, alpha = 0.85, color = "grey") + 
+  geom_abline(aes(intercept = 5, slope=0), lty = 2, alpha = 0.85, color = "grey") + 
+  scale_color_discrete(name = "altimeter")
+  #ggsave("output_figures/uncorrected_error_figures/Aircraft_boxplots-uncError.jpg", width = 7, height = 5)
+
+names(APE)
+table(APE$Measurer)
+```
+
+
+
+### Max laser recordings for each aircraft
+```{r}
+# P4Pro Video
+pp4.v <- dplyr::filter(laser, Aircraft == "P4Pro-video")
+print(paste("P4Pro-video: max laser = ", max(pp4.v$Altitude)))
+
+pp4 <- dplyr::filter(laser, Aircraft == "P4Pro")
+print(paste("P4Pro: max laser = ",max(pp4$Altitude)))
+
+a50 <- dplyr::filter(laser, Aircraft == "Alta-50mm")
+print(paste("Alta-50mm: max laser = ",max(a50$Altitude)))
+
+a35 <- dplyr::filter(laser, Aircraft == "Alta-35mm")
+print(paste("Alta-35mm: max laser = ",max(a35$Altitude)))
+
+Lem <- dplyr::filter(laser, Aircraft == "LemHex")
+print(paste("LemHex: max laser = ",max(Lem$Altitude)))
+
+Cin <- dplyr::filter(laser, Aircraft == "Cinestar")
+print(paste("Cinestar: max laser = ",max(Cin$Altitude)))
+
+```
+
+
+## Error w/ increasing altitude plots
+```{r}
+
+# Exclude P4Pro-video
+APE <- dplyr::filter(APE, Aircraft != "P4Pro-video")
+
+# Arrange order platform
+uas_levels <- c("Alta-35mm","Alta-50mm", "LemHex", "Cinestar", "P4Pro", "P3Std")
+APE$Aircraft <- factor(APE$Aircraft, levels = uas_levels)
+
+# Assign a specific color to each platform
+uasColors <- setNames(c("salmon1", 'gold3', '#56B4E9', '#009E73','orchid1', '#0072B2'), levels(APE$Aircraft))
+
+
+#### Barometer
+# Exclude P4Pro-video
+baro <- dplyr::filter(baro, Aircraft != "P4Pro-video")
+baro$Aircraft <- factor(baro$Aircraft, levels = uas_levels)
+baroColors <- setNames(c("salmon1", 'gold3', '#56B4E9', '#009E73','orchid1', '#0072B2'), levels(baro$Aircraft))
+
+
+baro.err <- ggplot(baro, aes(x = Altitude, y = TL, color = Aircraft)) + 
+  labs(x ="Altitude (m)", y = "Total Length (m)", title = "Barometer") + 
+  theme(plot.title = element_text(hjust = 0.5, face="bold")) + 
+  scale_x_continuous(breaks = seq(20,120, by = 20)) + 
+  scale_y_continuous(limits = c(1.2, 2.2)) + geom_point(alpha = 0.75) +  #geom_smooth(method='lm') + 
+  facet_wrap(~baro$Aircraft) +  
+  geom_abline(aes(intercept=1.48, slope=0), lty = 2, alpha = 0.75) + scale_color_manual(values = baroColors, name = "UAS") + theme(legend.position = "none")
+
+
+#### Laser
+# Exclude P4Pro-video
+laser <- dplyr::filter(laser, Aircraft != "P4Pro-video")
+laser$Aircraft <- factor(laser$Aircraft, levels = uas_levels)
+laserColors <- setNames(c("salmon1", 'gold3', '#56B4E9', '#009E73','orchid1', '#0072B2'), levels(laser$Aircraft))
+
+lsr.err <- ggplot(laser, aes(x = Altitude, y = TL, color = Aircraft))  + 
+  labs(x ="Altitude (m)", y = "Total Length (m)", title = "Laser") + 
+  theme(plot.title = element_text(hjust = 0.5, face="bold")) + 
+  scale_x_continuous(breaks = seq(20,120, by = 20)) + 
+  scale_y_continuous(limits = c(1.2, 2.2)) + geom_point(alpha = 0.75) +  #geom_smooth(method='lm') + 
+  facet_wrap(~Aircraft) +  
+  geom_abline(aes(intercept=1.48, slope=0), lty = 2, alpha = 0.75) + scale_color_manual(values = laserColors, name = "UAS") + theme(legend.position = "none")
+
+ggarrange(baro.err, lsr.err, #SA.repro.gray, BV.repro.gray, BAI.repro.gray, 
+                    ##labels = c("SA", "BV", "BAI"),
+                    ncol = 1, nrow = 2)
+ggsave("output_figures/uncorrected_error_figures/altitude&error.jpg")
+```
+
+
+
+## Object Positioning
+```{r}
+
+### Object positioning
+
+# Barometer
+baro.pos <- ggplot(baro, aes(x = Altitude, y = TL, color = Position))  + 
+  labs(x ="Altitude (m)", y = "Total Length (m)", title = "Barometer") + 
+  theme(plot.title = element_text(hjust = 0.5, face="bold")) + 
+  scale_x_continuous(breaks = seq(20,120, by = 20)) + 
+  scale_y_continuous(limits = c(1.2, 2.2)) + geom_point(alpha = 0.75) + 
+  facet_wrap(~baro$Aircraft) +  
+  geom_abline(aes(intercept=1.48, slope=0), lty = 2, alpha = 0.75) 
+
+
+# Laser
+lsr.pos <- ggplot(laser, aes(x = Altitude, y = TL, color = Position))  + 
+  labs(x ="Altitude (m)", y = "Total Length (m)", title = "Laser") + 
+  theme(plot.title = element_text(hjust = 0.5, face="bold")) + 
+  scale_x_continuous(breaks = seq(20,120, by = 20)) + 
+  scale_y_continuous(limits = c(1.2, 2.2)) + geom_point(alpha = 0.75) + 
+  facet_wrap(~laser$Aircraft) +  
+  geom_abline(aes(intercept=1.48, slope=0), lty = 2, alpha = 0.75) 
+
+# Combine & save plots
+ggarrange(baro.pos, lsr.pos, 
+                    ##labels = c("SA", "BV", "BAI"),
+                    ncol = 1, nrow = 2)
+ggsave("output_figures/uncorrected_error_figures/position.jpg")
+
+```
+
+
+
+    

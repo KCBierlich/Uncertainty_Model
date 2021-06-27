@@ -1,0 +1,352 @@
+---
+title: "Uncertainty_Plots"
+author: "KCB"
+date: "11/27/2020"
+output: html_document
+---
+Model 1 = only barometer  
+Model 2 = laser and barometer  
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, include=FALSE}
+# Packages
+library(tidyverse)
+library("dplyr")
+library("plyr")
+library(ggplot2)
+library(ggthemes)
+library(gghighlight)
+library(ggpubr)
+```
+
+```{r}
+# Import outputs from Model 1 and 2
+mod1 <- read.csv("model_outputs/csvs/mod_1-output.csv")
+mod2 <- read.csv("model_outputs/csvs/mod_2-output.csv")
+
+# Check out altitudes
+hist(mod1$altitude_baro_new)
+
+# Remove extremely high altitude
+mod1 <- dplyr::filter(mod1, altitude_baro_new < 100)
+mod2 <- dplyr::filter(mod2, altitude_baro_new < 100)
+
+hist(mod1$altitude_baro_new)
+
+# Remove L_new[52] due to huge difference between barometer altitude (57.447 m) and laser (91.415 m)
+mod1 <- dplyr::filter(mod1, X != "L_new[52]")
+mod2 <- dplyr::filter(mod2, X != "L_new[52]")
+
+# Create new variable
+mod1$altimeter <- "Model 1: barometer"
+mod2$altimeter <- "Model 2: laser & barometer"
+mod1$altitude_lsr_new <- "NA"
+
+# Combine models into single dataframe
+mod.all <- rbind(mod1, mod2)
+```
+
+
+# Model Figures
+
+load model 1 and 2 outputs
+```{r}
+# Load model outputs
+mod1_outputs <- load(file = "model_outputs/mod_1-outputs.RData")
+mod2_outputs <- load(file = "model_outputs/mod_2-outputs.RData")
+
+head(mod1_outputs)
+head(mod2_outputs)
+
+# save the mcmc outputs for each individual from Model 1 and 2
+mod1_mcmc <- as.data.frame(mcmc(m_Mod1))
+mod2_mcmc <- as.data.frame(mcmc(m_Mod2))
+
+# now can filter
+mod1_mcmc['L_new[2]']
+
+```
+
+
+Maturity classification (pasted from WAP study)
+# 1. I think you may need to burn the first half, then classify maturity. 
+    # that's what you did for BC analysis.
+# 2. regenerate figures to see if anything changes.
+```{r}
+
+# save list of AIDs
+ID_list <- names(mod1_mcmc) # extract AIDs
+full_df <-  mod1_mcmc       # save individual's dataframes to be used in the loop for maturity
+           
+# make an empty dataframe to fill with the summary stats
+maturity.df <- data.frame()
+
+# loop through list of AIDs (loop through each individual's data frame) and calculate the proportion of TLs > 11.2. 
+# result has a column of 'perAdult' for percent likelihood of being an adult.
+for (x in 1:length(ID_list)){
+  AID <- ID_list[x]       # pull ID name from list & save as variable
+  xx <-  full_df[[AID]]   # save TL precictions 
+  xx.t <- xx > 11.2       # set maturity cutoff and save values where TL is greater than cutoff 
+  perMature <-  round((length(xx.t[xx.t == TRUE])/length(xx))*100,2)  # calculate %% TL prediction > 11.2
+  mTL <- mean(xx)
+
+  # merge
+  tempdf <- data.frame(AID, mTL, perMature)  # save output in temp df
+  maturity.df <- rbind(maturity.df,tempdf)   # add the row of summary stats for this individual to the main dataframe
+}
+
+mat.mod1 <- maturity.df[1:51,]  # exclude L_new[52]   # save maturity output
+
+
+
+
+# save list of AIDs
+ID_list <- names(mod2_mcmc)  # extract AIDs
+full_df <-  mod2_mcmc       # save individual's dataframes to be used in the loop for maturity
+           
+# make an empty dataframe to fill with the summary stats
+maturity.df <- data.frame()
+
+# loop through list of AIDs (loop through each individual's data frame) and calculate the proportion of TLs > 11.2. 
+# result has a column of 'perAdult' for percent likelihood of being an adult.
+for (x in 1:length(ID_list)){
+  AID <- ID_list[x]       # pull ID name from list & save as variable
+  xx <-  full_df[[AID]]   # save TL precictions 
+  xx <- xx[length(xx)/2:length(xx)]
+  xx.t <- xx > 11.2       # set maturity cutoff and save values where TL is greater than cutoff 
+  perMature <-  round((length(xx.t[xx.t == TRUE])/length(xx))*100,2)  # calculate %% TL prediction > 11.2
+  mTL <- mean(xx)
+ 
+  # merge
+  tempdf <- data.frame(AID, mTL, perMature)  # save output in temp df
+  maturity.df <- rbind(maturity.df,tempdf)   # add the row of summary stats for this individual to the main dataframe
+}
+
+mat.mod2 <- maturity.df[1:51,]  # exclude L_new[52]
+
+# 17 = 64.16
+# 21 = 72.17
+# 23 = 47.64
+
+
+```
+
+
+
+Visualize maturity results
+```{r}
+ggplot(data = mat.mod1, aes(x = mTL, y = perMature)) + 
+  geom_point() + #geom_abline(intercept = 84.1, slope = 0, lty = 2) + 
+  ylab("% probability of being mature") +
+  geom_vline(xintercept = 11.2, linetype="dotted", color = "red", size=1.5) +
+  theme(legend.position = "right", axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  ggtitle("Mod 1: barometer only")
+  
+
+ggplot(data = mat.mod2, aes(x = mTL, y = perMature)) + 
+  geom_point() + #geom_abline(intercept = 84.1, slope = 0, lty = 2) + 
+  ylab("% probability of being mature") +
+  geom_vline(xintercept = 11.2, linetype="dotted", color = "red", size=1.5) +
+  theme(legend.position = "right", axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  ggtitle("Mod 2: barometer and laser")
+```
+
+
+
+
+### Figure 4. Whale 17
+```{r}
+# Import individual whale
+mod1_w17 <- mod1_w17
+mod2_w17 <- mod2_w17
+
+
+# # Assign variable for Model
+mod1_w17$altimeter <-  "Model 1: barometer"
+mod2_w17$altimeter <- "Model 2: laser & barometer"
+
+# Combine
+w17 <- rbind(mod1_w17, mod2_w17)
+
+# snag the 95% credible intervals for L_new[17]
+w17_95ci <- mod.all %>% filter(X == "L_new[17]") %>% group_by(model) %>% summarize(x = lower, xend = upper, altimeter = altimeter)
+
+# Plot
+ggplot(w17, aes(var1)) + 
+  geom_density(fill = "royalblue2", alpha = 0.75)  + 
+  xlab("predicted length (m)") +
+  facet_wrap(~altimeter, ncol = 1) + 
+  xlim(9,13) + 
+  ylim(0, 3) + 
+  geom_vline(aes(xintercept=11.2), col = "red", lty = 2, alpha = 0.75) + 
+  geom_segment(data = w17_95ci, aes(x=x, xend=xend, y=0, yend=0), size=2)
+ggsave("output_figures/uncertainty_figures/whale17.jpg", width = 7, height = 7)
+
+```
+
+
+
+Whale 23
+```{r}
+
+
+# Import individual whale
+mod1_w23 <- mod1_w23
+mod2_w23 <- mod2_w23
+
+
+# # Assign variable for Model
+mod1_w23$altimeter <-  "Model 1: barometer"
+mod2_w23$altimeter <- "Model 2: laser & barometer"
+
+# Combine
+w23 <- rbind(mod1_w23, mod2_w23)
+
+# snag the 95% credible intervals for L_new[17]
+w23_95ci <- mod.all %>% filter(X == "L_new[23]") %>% group_by(model) %>% summarize(x = lower, xend = upper, altimeter = altimeter)
+
+# Plot
+ggplot(w23, aes(var1)) + 
+  geom_density(fill = "royalblue2", alpha = 0.75)  + 
+  xlab("predicted length (m)") +
+  facet_wrap(~altimeter, ncol = 1) + 
+  xlim(9,13) + 
+  ylim(0, 3) + 
+  geom_vline(aes(xintercept=11.2), col = "red", lty = 2, alpha = 0.75) + 
+  geom_segment(data = w23_95ci, aes(x=x, xend=xend, y=0, yend=0), size=2)
+ggsave("output_figures/uncertainty_figures/whale23.jpg", width = 7, height = 7)
+```
+
+
+
+
+
+
+### Figure 5. humpback predicted lengths
+```{r}
+## Predicted humpback lengths for Model 1 and 2
+M1.output <-  ggplot(mod1, aes(x = altitude_baro_new, y = mean, ymin = lower, ymax = upper)) + 
+  geom_pointrange(colour = "royalblue2") + 
+  scale_x_continuous(breaks = seq(10, 80, by = 10)) +
+  scale_y_continuous(breaks = seq(7, 18, by = 1)) + 
+  xlab('observed altitude (m)') + 
+  ylab('predicted length (m)') +
+  ggtitle("Model 1: barometer") + 
+  geom_abline(aes(intercept=11.2, slope=0), col = "red", lty = 2, alpha = 0.75) + # Cutoff for mature humpback whales (Christiansen et al., 2016)
+   gghighlight(X == "L_new[17]" | X == "L_new[21]" |X == "L_new[23]",
+  unhighlighted_params = list(size = 0.5, colour = alpha("black", 0.75))) 
+
+M2.output <-  ggplot(mod2, aes(x = altitude_baro_new, y = mean, ymin = lower, ymax = upper)) + 
+  geom_pointrange(colour = "royalblue2") + 
+  scale_x_continuous(breaks = seq(10, 80, by = 10)) +
+  scale_y_continuous(breaks = seq(7, 18, by = 1)) + 
+  xlab('observed altitude (m)') + 
+  ylab('predicted length (m)') +
+  ggtitle("Model 2: barometer & laser") + 
+  geom_abline(aes(intercept=11.2, slope=0), col = "red", lty = 2, alpha = 0.75) + # Cutoff for mature humpback whales (Christiansen et al., 2016)
+   gghighlight(X == "L_new[17]" | X == "L_new[21]" |X == "L_new[23]",
+  unhighlighted_params = list(size = 0.5, colour = alpha("black", 0.75))) 
+
+ggarrange(M1.output, M2.output, ncol = 1, nrow = 2)
+ggsave("output_figures/uncertainty_figures/Mod_1&2-Uncertainty_Meas-wLsr.jpg", width = 7, height = 7)
+```
+
+
+
+### Figure 6. 95% credible interval width w/ altitude
+```{r}
+
+## Plot HPD interval diff w/ altitude
+ggplot(mod.all, aes(x = altitude_baro_new, y = ULdiff, col = altimeter)) + geom_point(size = 2) + 
+  labs( x = "altitude (m)", y = "95% HPD interval width (m)") + 
+  scale_x_continuous(breaks = seq(10,120, by = 10)) + 
+  #scale_color_discrete(blank = "")
+  theme(legend.title = element_blank(), legend.position = c(0.8, 0.85))
+ggsave("output_figures/uncertainty_figures/Mod1&2-HPDs.jpg", width = 7, height = 7)
+```
+
+
+
+# Supplementary Material
+Comparison between the point estimate total lengths (before uncertainty model) and the predicted total lengths (after uncertainty model).  
+
+### Model 1
+```{r}
+#
+# Mod 1
+#
+
+# Change name so you can merge
+names(mod1)[1] <- "L_new"
+# Merge
+mod1.tl <- join(x = mod1, y = pt_est, by = "L_new")
+                
+# Plot
+pt.est.M1 <- ggplot(mod1.tl, aes(x = altitude_new_baro, y = TL.baro, ymin = lower, ymax = upper)) +
+  geom_pointrange(color = "black", alpha = 0.75, shape = 4) + geom_point(color = "red", size = 3.5, shape = 4) +
+  scale_x_continuous(breaks = seq(10, 80, by = 10)) +
+  scale_y_continuous(breaks = seq(7, 18, by = 1)) + 
+  ggtitle("Model 1: barometer") +
+  xlab('observed altitude (m)') + 
+  ylab('predicted length (m)') +
+    geom_abline(aes(intercept=11.2, slope=0), col = "red", lty = 2, alpha = 0.75) 
+
+
+cat(paste("Model 1: Difference between the point estimate TL and the predicted mean", "\n",
+          "mean = ", round(mean(mod1.tl$TL.baro- mod1.tl$mean), digits = 2), "\n", 
+    "min = ", round(min(mod1.tl$TL.baro- mod1.tl$mean), digits = 2), "\n", 
+    "max =", round(max(mod1.tl$TL.baro - mod1.tl$mean), digits = 2)))
+
+```
+
+### Model 2
+```{r}
+#
+# Mod 2
+#
+
+# Change name so you can merge
+names(mod2)[1] <- "L_new"
+# Merge
+mod2.tl <- join(x = mod2, y = pt_est, by = "L_new")
+
+# Remove altitudes < 90 m
+#mod2.tl <- dplyr::filter(mod2.tl, altitude_new_laser < 90)
+
+# Plot
+pt.est.M2 <- ggplot(mod2.tl, aes(x = altitude_new_laser, y = TL.laser, ymin = lower, ymax = upper)) +
+  geom_pointrange(color = "black", alpha = 0.75, shape = 4) + geom_point(color = "red", size = 3.5, shape = 4) +
+  scale_x_continuous(breaks = seq(10, 80, by = 10)) +
+  scale_y_continuous(breaks = seq(7, 18, by = 1)) + 
+  ggtitle("Model 2: laser & barometer") +
+  xlab('observed altitude (m)') + 
+  ylab('predicted length (m)') +
+    geom_abline(aes(intercept=11.2, slope=0), col = "red", lty = 2, alpha = 0.75) 
+
+
+cat(paste("Model 2: Difference between the point estimate TL and the predicted mean", "\n",
+          "mean = ", round(mean(mod2.tl$TL.laser- mod2.tl$mean), digits = 2), "\n", 
+    "min = ", round(min(mod2.tl$TL.laser- mod2.tl$mean), digits = 2), "\n", 
+    "max =", round(max(mod2.tl$TL.laser- mod2.tl$mean), digits = 2)))
+
+```
+
+
+### Supplementary Figure S2 uncorrected TL (before running each model) w/ 95% credible intervals from each model
+```{r}
+#pt.est.M1
+#pt.est.M2
+
+ggarrange(pt.est.M1, pt.est.M2,
+                    #labels = c("Model 1", "Model 2"),
+                    ncol = 1, nrow = 2)
+ggsave("output_figures/uncertainty_figures/pt_estimates-vs_predLengths.jpg", width = 7, height = 7)
+```
+
+
+
+
