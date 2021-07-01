@@ -1,11 +1,11 @@
 README
 ================
 
-The code is designed to be run using the `drake` package, by running the
-code in the script [make.R](make.R) either via the command line (i.e.,
-`R CMD BATCH make.R`), or from within an interactive `R` session. The
-outline of all project components (i.e., the `drake` plan) is available
-in the [R/subplans](R/subplans) directory.
+This code is designed to be run using the `drake` package, by running
+the code in the script [make.R](make.R) either via the command line
+(i.e., `R CMD BATCH make.R`), or from within an interactive `R` session.
+The outline of all project components (i.e., the `drake` plan) is
+available in the [R/subplans](R/subplans) directory.
 
 The `drake` [Github page](https://github.com/ropensci/drake) page has a
 good overview of what drake does, and includes some code snippets. After
@@ -18,6 +18,16 @@ package.
 Starting with the
 [Walkthrough](https://books.ropensci.org/drake/walkthrough.html#set-the-stage.)
 is a decent place to just jump in to some details.
+
+   
+
+Code and data from:  
+**A Bayesian approach for predicting photogrammetric uncertainty in
+morphometric measurements derived from UAS**  
+KC Bierlich, Robert Schick, Josh Hewitt, Julian Dale, Jeremy Goldbogen,
+Ari Friedlaender, David Johnston  
+*Marine Ecology Progress Series*  
+DOI: <https://doi.org/10.3354/meps13814>.
 
 # Data formats
 
@@ -110,62 +120,120 @@ the following:
 | Subject  | Measurement  | Image   | PixelCount |
 | :------- | :----------- | :------ | ---------: |
 | Animal A | Total length | Image 1 |  1000.0000 |
-| Animal A | Total length | Image 2 |  1006.2380 |
-| Animal A | Total length | Image 3 |   982.4426 |
-| Animal A | Total length | Image 4 |   989.0202 |
-| Animal A | Total length | Image 5 |   986.8365 |
+| Animal A | Total length | Image 2 |  1011.2207 |
+| Animal A | Total length | Image 3 |   991.5667 |
+| Animal A | Total length | Image 4 |  1034.2079 |
+| Animal A | Total length | Image 5 |  1006.5950 |
 
 ## Materials
 
 ### Data:
 
-“APE-Dataset.csv” - training/calibration data for different UAS
-platforms.
-
-– Images = image used for measuring calibration object  
-– Aircraft = the UAS aircraft used to collect imagery of calibration
+*APE-Dataset.csv* - training/calibration data for different UAS
+platforms.  
+\* Images = image used for measuring calibration object  
+\* Aircraft = the UAS aircraft used to collect imagery of calibration
 object to measure  
-– Flight = the flight number/name  
-– Position = indicates if calibration object is in center of corner of
+\* Flight = the flight number/name  
+\* Position = indicates if calibration object is in center of corner of
 image frame  
-– Focal.length = focal length of camera  
-– Pix.Dim = pixel dimensions (mm/px), which is the sensor width (mm) /
+\* Focal.length = focal length of camera  
+\* Pix.Dim = pixel dimensions (mm/px), which is the sensor width (mm) /
 image width (px) of the camera  
-– Baro\_raw = the raw relative altitude recorded by the barometer  
-– Launch.Ht = the launch height of the drone, to be added to the BarAlt
+\* Baro\_raw = the raw relative altitude recorded by the barometer  
+\* Launch.Ht = the launch height of the drone, to be added to the BarAlt
 to get the absolute barometric altitude above the surface of the water  
-– Baro + Ht = the baro\_raw + Launch.Ht to get the absolute barometer
+\* Baro + Ht = the baro\_raw + Launch.Ht to get the absolute barometer
 altitude  
-– Laser\_Alt = the altitude recorded by the laser altimeter. Blanks
+\* Laser\_Alt = the altitude recorded by the laser altimeter. Blanks
 spaces/NAs indicate no/false reading  
-– Alitude = altitude used in measurement, either Laser\_Alt or Baro +
+\* Alitude = altitude used in measurement, either Laser\_Alt or Baro +
 Ht  
-– Alimeter = which altimeter was used for altitude in measurement;
+\* Alimeter = which altimeter was used for altitude in measurement;
 either barometer or laser  
-– Measurer = which analyst measured the calibration object (3 analysts
+\* Measurer = which analyst measured the calibration object (3 analysts
 total, measured each image once)  
-– RRR.pix = the length in pixels of the known sized object (calibration
+\* RRR.pix = the length in pixels of the known sized object (calibration
 object)
 
-“humpback\_data.csv” - testing data. Humpback lengths from the Western
-Antarctic Peninsula.
-
-– Animal\_ID = unique ID for individual whale  
-– Reproductive\_Class = determined from biopsy sample or from drone
+*humpback\_data.csv* - testing data for Ecological Scenario 1,
+length-based maturity of humpback whales \* whale = numbered list of
+individuals  
+\* Animal\_ID = unique ID for individual whale  
+\* Reproductive\_Class = determined from biopsy sample or from drone
 images (mom and calf pairs)  
-– Species = the species of whale  
-– Image = the image ID used for measuring the whale  
-– Aircraft = which UAS platform collected the imagery  
-– Focal\_Length = focal length (mm) of the camera used  
-– LaserAlt = the altitude recorded by the laser altimeter. Blanks
+\* Species = the species of whale  
+\* Image = the image ID used for measuring the whale  
+\* Aircraft = which UAS platform collected the imagery  
+\* Focal\_Length = focal length (mm) of the camera used  
+\* LaserAlt = the altitude recorded by the laser altimeter. Blanks
 spaces/NAs indicate no/false reading  
-– BaroAlt = the raw relative altitude recorded by the barometer  
-– Pixel\_Dimension = (mm/px) the Sensor width (mm) / Image width (px) of
-the camera  
-– Launch\_Ht = the launch height of the drone, to be added to the BarAlt
-to get the absolute barometric altitude above the surface of the water  
-– Altitude = altitude used in measurement, either LaserAlt or BaroAlt +
+\* BaroAlt = the raw relative altitude recorded by the barometer  
+\* Pixel\_Dimension = (mm/px) the Sensor width (mm) / Image width (px)
+of the camera  
+\* Launch\_Ht = the launch height of the drone, to be added to the
+BarAlt to get the absolute barometric altitude above the surface of the
+water  
+\* Altitude = altitude used in measurement, either LaserAlt or BaroAlt +
 Launch\_Ht  
-– Altimeter = which altimeter was used for altitude in measurement;
+\* Altimeter = which altimeter was used for altitude in measurement;
 either barometer or laser  
-– TL = total length of the whale in meters
+\* TL = total length of the whale in meters
+
+*marrs\_amws.csv* - testing data for Ecological Scenario 2,
+population-lelve morphological relationship between rostrum to blowhole
+distance and total body length \* AID = unique ID for individual whale  
+\* Species = the species of whale  
+\* Image = the image ID used for measuring the whale  
+\* Region = location of data collection (WAP = Western Antarctic
+Peninsula)  
+\* Year = year of data collection  
+\* Aircraft = which UAS platform collected the imagery  
+\* TL = total length of the whale in meters  
+\* RB = rostrum to blowhole distance in meters  
+\* BaroAlt = the raw relative altitude recorded by the barometer  
+\* Launch\_Ht = the launch height of the drone, to be added to the
+BarAlt to get the absolute barometric altitude above the surface of the
+water  
+\* LaserAlt = the altitude recorded by the laser altimeter. Blanks
+spaces/NAs indicate no/false reading  
+\* Altitude = altitude used in measurement, either LaserAlt or BaroAlt +
+Launch\_Ht  
+\* Focal\_Length = focal length (mm) of the camera used  
+\* Iw = image width in pixels  
+\* Sw = sensor width in mm  
+\* perDif = percent difference between the altitude recorded by the
+barometer and laser altimeter
+
+## Steps
+
+run ‘make.R’
+
+This will generate an “output” folder that contains an ‘mcmc’ folder and
+a ‘reports’ folder.
+
+  - The ‘mcmc’ folder contains all the .rds outputs from the model (note
+    that “fit\_mns” refers to humpbacks in Ecological Scenario 1, while
+    “fit\_marrs” refers to Antarctic minke whales in Ecological
+    Scenario 2), and a ‘diagnostics’ folder with .html files providing
+    diagnostic comparisons between the different model outputs (e.g.,
+    barometer only, barometer and laser, uninformative priors, etc.).
+
+  - The ‘reports’ folder contains .html files to evaluate the results
+    from the model
+    
+      - Sc1\_output\_figures explores outputs from Ecological Scenario
+        1. Figures are automatically saved in the “figures” folder of
+        the main directory.
+    
+      - fit\_marrs refers to results from Scenario 2
+    
+      - Uncorrected\_error\_figures explores the APE dataset (training
+        data) before applying the uncertainty model. Figures are
+        automatically saved in the “figures” folder of the main
+        directory.
+
+## Contact
+
+KC Bierlich, <kevin.bierlich@oregonstate.edu>  
+<https://github.com/KCBierlich>
