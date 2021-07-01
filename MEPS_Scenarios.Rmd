@@ -50,7 +50,7 @@ ID_list <-  names(full_df)     # save list of AIDs
 maturity.df <- data.frame()
 
 # loop through list of AIDs (loop through each individual's data frame) and calculate the proportion of TLs > 11.2. 
-# result has a column of 'perMature' for percent likelihood of being mature
+# result has a column of 'perMature' representing "percent likelihood of being mature"
 for (x in 1:length(ID_list)){
   AID <- ID_list[x]       # pull ID name from list & save as variable
   xx <-  full_df[[AID]]   # save TL precictions 
