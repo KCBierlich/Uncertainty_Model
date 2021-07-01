@@ -1,7 +1,7 @@
 ---
-title: "New_new"
+title: "Output Figures"
 author: "KCB"
-date: "4/30/2021"
+date: "7/1/2021"
 output: html_document
 ---
 
@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r}
+```{r, include=FALSE}
 library(dotenv)
 library(drake)
 library(coda)
@@ -21,14 +21,25 @@ library(knitr)
 library(nimble)
 library(scoringRules)
 library(stringr)
+library(ggdist)
 library(tidyr)
 library("ggpubr")
 library(conflicted) 
 conflict_prefer("filter", "dplyr")
 conflict_prefer("summarize", "dplyr")
+```
 
-mns_mod1 <- readRDS(file.path("output", "mcmc","length_samples_mns_fit_mns_barometer.rds"))
-mns_mod2 <- readRDS(file.path("output", "mcmc","length_samples_mns_fit_mns_barometer.laser.rds"))
+
+
+
+# Ecological Scenario 1: length based maturity classification for humpback whales
+Model 1 = barometer only  
+Model 2 = barometer and laser  
+  
+load model outputs  
+```{r}
+mns_mod1 <- readRDS(file.path("..", "output", "mcmc","length_samples_mns_fit_mns_barometer.rds"))
+mns_mod2 <- readRDS(file.path("..", "output", "mcmc","length_samples_mns_fit_mns_barometer.laser.rds"))
 
 
 mod1_samples <- as.list(mns_mod1$samples)
@@ -50,7 +61,7 @@ ID_list <-  names(full_df)     # save list of AIDs
 maturity.df <- data.frame()
 
 # loop through list of AIDs (loop through each individual's data frame) and calculate the proportion of TLs > 11.2. 
-# result has a column of 'perMature' representing "percent likelihood of being mature"
+# result has a column of 'perMature' representing the "percent likelihood of being mature"
 for (x in 1:length(ID_list)){
   AID <- ID_list[x]       # pull ID name from list & save as variable
   xx <-  full_df[[AID]]   # save TL precictions 
@@ -80,10 +91,10 @@ ID_list <-  names(full_df)     # save list of AIDs
 maturity.df <- data.frame()
 
 # loop through list of AIDs (loop through each individual's data frame) and calculate the proportion of TLs > 11.2. 
-# result has a column of 'perMature' for percent likelihood of being mature
+# result has a column of 'perMature' the "percent likelihood of being mature"
 for (x in 1:length(ID_list)){
   AID <- ID_list[x]       # pull ID name from list & save as variable
-  xx <-  full_df[[AID]]   # save TL precictions 
+  xx <-  full_df[[AID]]   # save TL predictions 
   xx.t <- xx$`Total length` > 11.2       # set maturity cutoff and save values where TL is greater than cutoff 
   perMature <-  round((length(xx.t[xx.t == TRUE])/length(xx$`Total length`))*100,2)  # calculate %% TL prediction > 11.2
   mTL <- mean(xx$`Total length`)
@@ -108,16 +119,12 @@ mat.mod2 <- mat.mod2 %>% dplyr::filter(AID != "Mn190325_A_F1-01")
 
 
 
-### Figure 4. Whale 17
+## Figure 4
+Example of predictive posterior TL distribution for an individual whale
 ```{r}
-mat.mod1 %>% dplyr::filter(perMature < 60 & perMature > 45)
-mat.mod2 %>% dplyr::filter(perMature < 28 & perMature > 1)
-
-# Ex_mod1 <- mns_mod1$samples$"Mn190309_A_F3-02-44b"
-# Ex_mod2 <- mns_mod2$samples$"Mn190309_A_F3-02-44b"
-# Ex_mod1 <- mns_mod1$samples$"Mn190228_A_F2-01-42"
-# Ex_mod2 <- mns_mod2$samples$"Mn190228_A_F2-01-42"
-
+## Find a good example of an individual with different classifications between on Model 1 and 2
+  # mat.mod1 %>% dplyr::filter(perMature < 60 & perMature > 45)
+  # mat.mod2 %>% dplyr::filter(perMature < 28 & perMature > 1)
 
 Ex_mod1 <- mns_mod1$samples$"Mn190318_A_F1-01"
 Ex_mod2 <- mns_mod2$samples$"Mn190318_A_F1-01"
@@ -132,30 +139,25 @@ names(Ex)[names(Ex) == "Total length"] <- "TL"
 
 ```
 
-### Use tidy bayes to plot
-Figure 4
+
+Plot Figure 4
 ```{r}
-
-library(ggdist)
-
 ggplot(Ex %>% dplyr::filter(TL < 15), aes(TL)) + 
   stat_halfeye() +
-  #stat_halfeye(fill = "royalblue2", alpha = 0.75)  + 
   xlab("predicted length (m)") +
   ylab("density") +
   facet_wrap(~altimeter, ncol = 1) + 
-  #xlim(9,14) + 
-  #ylim(0, 3) + 
   geom_vline(aes(xintercept=11.2), col = "red", lty = 2, alpha = 0.75) 
-ggsave("figures/Ex_whale.jpg", width = 7, height = 7)
+ggsave(file.path('..', 'figures', 'Fig4.jpg'), width = 7, height = 7)
 ```
 
 
-### humpback predicted lengths w/ increasing altitude & maturity
-Figure 5. 
+## Figure 5. 
+Comparison of Model 1 and Model 2 outputs  
+Humpback predicted lengths w/ increasing altitude & maturity classification
 ```{r}
 
-mod_inputs <- read.csv(file.path("data", "humpback_data.csv"))
+mod_inputs <- read.csv(file.path("..", "data", "humpback_data.csv"))
 names(mod_inputs)[names(mod_inputs) == "Animal_ID"] <- "AID"
 
 # Merge metadata from model inputs 
@@ -186,16 +188,15 @@ M2.output <- ggplot(mat.mod2, aes(x = BaroAlt, y = mTL, ymin = hpd_lwr, ymax = h
   geom_abline(aes(intercept=11.2, slope=0), col = "red", lty = 2, alpha = 0.75)  # Cutoff for mature humpback whales (Christiansen et al., 2016) 
 
 ggarrange(M1.output, M2.output, ncol = 1, nrow = 2)
-ggsave("figures/Mod_1&2-maturity_wAlt.jpg", width = 7, height = 7)
-
-```
-
+ggsave(file.path('..', 'figures', 'Fig5.jpg'), width = 7, height = 7)
+``` 
 
 
-### 95% credible interval width w/ altitude
-Figure 6.
+
+## Figure 6.
+Comparing Model 1 and Model 2 measurement uncertainty.  
+Uncertainty represented as 95% HPD intervals widths.
 ```{r}
-
 mat.mod1 <- mat.mod1 %>% select(!Altimeter)
 mat.mod2 <- mat.mod2 %>% select(!Altimeter)
 mat.mod1$Unc <-  mat.mod1$hpd_upr - mat.mod1$hpd_lwr
@@ -206,7 +207,8 @@ mat.mod2$altimeter <- "barometer & laser"
 mod.all <- rbind(mat.mod1, mat.mod2)
 
 mod.all$altimeter <- ordered(mod.all$altimeter, levels = c("barometer only", "barometer & laser" )) 
-# Summary stats of Uncertainty (HPD widths)
+
+# Summary stats of Uncertainty (HPD interval widths)
 mod.all %>% group_by(altimeter) %>% summarise(min = round(min(Unc),2), 
                                               max = round(max(Unc),2), 
                                               mean = round(mean(Unc),2),
@@ -218,77 +220,18 @@ ggplot(mod.all, aes(x = BaroAlt, y = Unc, col = as.factor(altimeter))) + geom_po
   labs( x = "altitude (m)", y = "95% HPD interval width (m)") + 
   scale_x_continuous(breaks = seq(10,120, by = 10)) + 
   scale_color_manual(values=c("#F8766D", "#529EFF")) +
-  #scale_color_discrete(blank = "")
   theme_light() + 
   theme(legend.title = element_blank(), legend.position = c(0.8, 0.85)) 
-ggsave("figures/uncertainty_wAltitude.jpg", width = 7, height = 7)
+ggsave(file.path('..', 'figures', 'Fig6.jpg'), width = 7, height = 7)
 ```
 
 
+# Supplementary Material
 
-### AMWs (Scenario 2)
-look at rbtl_posterior.Rmd to see how he got this.
-```{r}
-amws_data <- read.csv(file.path("data", "marrs_amws.csv"))
-amws_output <- readRDS(file.path("output", "mcmc","fit_marrs.rds"))
-
-
-
-amws_input <- amws_data %>% dplyr::filter(
-      # target morphological measurements must be available
-      is.finite(TL), is.finite(RB), 
-      # some altitude data must be present 
-      any(is.finite(LaserAlt), is.finite(BaroAlt)))
-unique(amws_input$AID)
-length(amws_input$AID)
-
-
-amws_nimages <- amws_input %>% group_by(AID) %>% summarise(n_images = n())  # measurements per individual.
-length(amws_nimages$n_images[amws_nimages$n_images > 1])/27
-amws_nimages %>% dplyr::filter(n_images > 1) # number of imagew w/ repeated measurements.
-
-#amws_input %>% group_by(AID) %>% dplyr::filter(n()>1)  # measurements per individual.
-nrow(amws_input %>% dplyr::filter(is.na(LaserAlt))) # number of measurements w. missing laser altimeter
-amws_input %>% dplyr::filter(is.na(LaserAlt)) # number of measurements w. missing laser altimeter      
-
-est_fig <- ggplot(df2, aes(x = est_TL, y = est_RB)) + geom_point() +
-  #geom_polygon(mapping = aes(x=x, y=y), data = df.cipoly, inherit.aes = FALSE,
-   #          alpha = .3) + 
-  xlab('TL') + 
-  ylab('RB') + 
-  #geom_line(mapping = aes(x = TL, y = RB), data = df.mean, 
-  #          inherit.aes = FALSE, lwd = 0.5) + 
-  geom_pointrange(aes(ymin = lwr_RB, ymax = upr_RB)) + 
-  geom_errorbarh(aes(xmin = lwr_TL, xmax = upr_TL)) + 
-  geom_smooth(method = 'lm', fill = 'blue')  +
-  ggtitle('Posterior mean RB/TL measurements and mean linear relationship') + 
-  theme_few()
-
-unique(amws$config)
-amws$samples
-
-amws_list <- amws_output$config$maps$L
-length(unique(amws_list$Subject[6:59]))
-length(amws_list$Subject[6:59])
-27/54
-amws_list
-```
-
-
-
-## Supplementary Material
-
-#### Point-estimates
+# Point-estimates
+Comparison 
 ```{r}
 mod.all$altimeter <- ordered(as.factor(mod.all$altimeter), c("barometer only", "barometer & laser")) 
-
-ggplot(mod.all, aes(x = AID, y = TL, ymin = hpd_lwr, ymax = hpd_upr, color = Aircraft)) + 
-   geom_pointrange(color = "black", alpha = 0.75, shape = 4) + geom_point(color = "red", size = 3.5, shape = 4) +
-  xlab("") + 
-  ylab('predicted length (m)') +
-  facet_wrap(~altimeter) +
-  theme(legend.position = "right", axis.text.x = element_text(angle = 90, hjust = 1)) +
-  geom_abline(aes(intercept=11.2, slope=0), col = "red", lty = 2, alpha = 0.75)  # Cutoff for mature humpback whales (Christiansen et al., 2016)
 
 ggplot(mod.all, aes(x = AID, y = TL, ymin = hpd_lwr, ymax = hpd_upr, color = Aircraft)) + 
    geom_pointrange(alpha = 0.75, shape = 4) + geom_point(size = 3.5, shape = 4) +
@@ -298,35 +241,8 @@ ggplot(mod.all, aes(x = AID, y = TL, ymin = hpd_lwr, ymax = hpd_upr, color = Air
   theme(legend.position = "right", axis.text.x = element_text(angle = 90, hjust = 1)) +
   geom_abline(aes(intercept=11.2, slope=0), col = "red", lty = 2, alpha = 0.75)  # Cutoff for mature humpback whales (Christiansen et al., 2016)
 
-ggsave("figures/Supp_pt_estimates.jpg", width = 9, height = 7)
+ggsave(file.path('..', 'figures', 'Supp_FigS2.jpg'), width = 9, height = 7)
 
 ```
 
-
-
-#### Visualize maturity results
-```{r}
-mat1 <- ggplot(data = mat.mod1, aes(y = mTL, ymin = hpd_lwr, ymax = hpd_upr, x = perMature)) + 
-  geom_pointrange() + #geom_abline(intercept = 84.1, slope = 0, lty = 2) + 
-  xlab("% probability of maturity") + ylab("predicted length (m)") +
-  geom_abline(intercept =  11.2, slope = 0, linetype="dashed", color = "red", size=.5) +
-  ylim(7,18) +
-  theme(legend.position = "right", axis.text.x = element_text(angle = 0, hjust = 1)) + 
-  ggtitle("Model 1: barometer only")
-  
-
-mat2 <- ggplot(data = mat.mod2, aes(y = mTL, ymin = hpd_lwr, ymax = hpd_upr, x = perMature)) + 
-  geom_pointrange() + #geom_abline(intercept = 84.1, slope = 0, lty = 2) + 
-  xlab("% probability of maturity") + ylab("predicted length (m)") + 
-  geom_abline(intercept =  11.2, slope = 0, linetype="dashed", color = "red", size=.5) +
-  ylim(7,18) +
-  theme(legend.position = "right", axis.text.x = element_text(angle = 0, hjust = 1)) + 
-  ggtitle("Model 2: barometer and laser")
-
-ggarrange(mat1, mat2)
-```
-
-```{r}
-model_comparisons
-```
 

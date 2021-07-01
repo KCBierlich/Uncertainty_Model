@@ -186,14 +186,19 @@ ggplot(data.frame(m) %>% pivot_longer(everything()), aes(x = value)) +
   theme_few()
 ```
 
-```{r joint_posterior, fig.cap='Strong posterior correlation between regression parameters, as expected.  However, there is still strong posterior concentration in one region, which helps identify the population-level relationship.'}
+```{r joint_posterior, fig.cap='Strong posterior correlation between regression parameters, as expected.  However, there is still strong posterior concentration in one region, which helps identify the population-level relationship (represented by the pink diamond)'}
+
+df.m <- data.frame(m)
+df.m.pop.mean <- data.frame(beta.1. = mean(df.m $beta.1), beta.2. = mean(df.m $beta.2)) 
+
 ggplot(data.frame(m), aes(x = beta.1., y = beta.2.)) + 
   geom_point() + 
   stat_density_2d(col = 'grey60') + 
   xlab(expression(beta[1])) + 
   ylab(expression(beta[2])) + 
   theme_few() + 
-  theme(axis.title.y = element_text(angle = 0, vjust = 0.5))
+  theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) + 
+  geom_point(aes(x = beta.1., y = beta.2.), data = df.m.pop.mean, fill = "pink", shape = 23, size = 4)
 
 ```
 
@@ -243,36 +248,6 @@ ggplot(df2, aes(x = est_TL, y = est_RB)) +
   theme_few()
 ```
 
-
-Figure 7 for MEPS
-```{r}
-library(ggpubr)
-est_fig <- ggplot(df2, aes(x = est_TL, y = est_RB)) + geom_point() +
-  geom_polygon(mapping = aes(x=x, y=y), data = df.cipoly, inherit.aes = FALSE,
-            alpha = .3) + 
-  xlab('TL') + 
-  ylab('RB') + 
-  geom_line(mapping = aes(x = TL, y = RB), data = df.mean, 
-            inherit.aes = FALSE, lwd = 0.5) + 
-  geom_pointrange(aes(ymin = lwr_RB, ymax = upr_RB)) + 
-  geom_errorbarh(aes(xmin = lwr_TL, xmax = upr_TL)) + 
-  ylab("predicted RB (m)") + 
-  xlab("predicted TL (m)") + 
-  #geom_smooth(method = 'lm', fill = 'blue')  +
-  #ggtitle('Posterior mean RB/TL measurements and mean linear relationship') + 
-  theme_few()
-
-slope_fig <- ggplot(data.frame(m), aes(x = beta.1., y = beta.2.)) + 
-  geom_point() + 
-  stat_density_2d(col = 'grey60') + 
-  xlab(expression(beta[1])) + 
-  ylab(expression(beta[2])) + 
-  theme_few() + 
-  theme(axis.title.y = element_text(angle = 0, vjust = 0.5))
-ggarrange(est_fig, slope_fig, ncol = 1, labels = 'AUTO') 
-ggsave(file.path("..", "figures", "AMW_RBTL.jpg"), width = 7, height = 7)
-
-```
 
 
 ## Traceplots

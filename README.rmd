@@ -80,7 +80,7 @@ it appears in the image.
 ```{r, echo = FALSE}
 library(drake)
 loadd(Mns_pixels)
-knitr::kable(Mns_pixels[1:5,])
+knitr::kable(Mns_pixels[3:8,])
 ```
 
 ## Many-to-Many relationships
@@ -115,3 +115,42 @@ knitr::kable(
 )
 ```
 
+
+
+## Materials
+
+### Data:
+
+"APE-Dataset.csv" - training/calibration data for different UAS platforms.
+
+Images = image used for measuring calibration object
+Aircraft = the UAS aircraft used to collect imagery of calibration object to measure
+Flight = the flight number/name
+Position = indicates if calibration object is in center of corner of image frame
+Focal.length = focal length of camera
+Pix.Dim = pixel dimensions (mm/px), which is the sensor width (mm) / image width (px) of the camera
+Baro_raw = the raw relative altitude recorded by the barometer
+Launch.Ht = the launch height of the drone, to be added to the BarAlt to get the absolute barometric altitude above the surface of the water
+Baro + Ht = the baro_raw + Launch.Ht to get the absolute barometer altitude
+Laser_Alt = the altitude recorded by the laser altimeter. Blanks spaces/NAs indicate no/false reading
+Alitude = altitude used in measurement, either Laser_Alt or Baro + Ht
+Alimeter = which altimeter was used for altitude in measurement; either barometer or laser
+Measurer = which analyst measured the calibration object (3 analysts total, measured each image once)
+RRR.pix = the length in pixels of the known sized object (calibration object)  
+
+
+"humpback_data.csv" - testing data. Humpback lengths from the Western Antarctic Peninsula.
+
+Animal_ID = unique ID for individual whale
+Reproductive_Class = determined from biopsy sample or from drone images (mom and calf pairs)
+Species = the species of whale
+Image = the image ID used for measuring the whale
+Aircraft = which UAS platform collected the imagery
+Focal_Length = focal length (mm) of the camera used
+LaserAlt = the altitude recorded by the laser altimeter. Blanks spaces/NAs indicate no/false reading
+BaroAlt = the raw relative altitude recorded by the barometer
+Pixel_Dimension = (mm/px) the Sensor width (mm) / Image width (px) of the camera
+Launch_Ht = the launch height of the drone, to be added to the BarAlt to get the absolute barometric altitude above the surface of the water
+Altitude = altitude used in measurement, either LaserAlt or BaroAlt + Launch_Ht
+Altimeter = which altimeter was used for altitude in measurement; either barometer or laser
+'TL' = total length of the whale in meters

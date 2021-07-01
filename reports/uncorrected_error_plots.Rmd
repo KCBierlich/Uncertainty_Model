@@ -1,7 +1,7 @@
 ---
-title: 'uncorrected_Error_plots'
+title: 'Uncorrected_Error_plots'
 author: "KCB"
-date: "11/27/2020"
+date: "7/1/2021"
 output: html_document
 ---
 
@@ -10,19 +10,19 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-
-
 ### Data Setup 
 ```{r, include = FALSE}
 # Packages
+library(dplyr)
 library(ggplot2)
-library("ggpubr")
+library(ggpubr)
 ```
 
+
+"Uncorrected" error plots, meaning before running the uncertainty model.
 ```{r}
 # import training data
-
-APE <- read.csv(file.path("data", "APE-Dataset.csv"))
+APE <- read.csv(file.path("..", "data", "APE-Dataset.csv"))
 
 print(paste("Number of data points in dataset = ", nrow((APE))))
 APE %>% dplyr::filter(Measurer == "KCB") %>% summarise(n())
@@ -49,7 +49,7 @@ laser <- APE[APE$Altimeter == "Laser", c("TL",  "Aircraft", "Altitude", "Altimet
 ```
 
   
-## % Error
+## % Uncorrected Error
 ```{r}
 
 uas_levels <- c("Alta-50mm","Alta-35mm", "LemHex", "Cinestar", "P3Std", "P4Pro", "P4Pro-video")
@@ -66,10 +66,8 @@ ggplot(APE, aes(x = Aircraft, y = Xerror, color = Altimeter)) + geom_boxplot() +
   geom_abline(aes(intercept = -5, slope=0), lty = 2, alpha = 0.85, color = "grey") + 
   geom_abline(aes(intercept = 5, slope=0), lty = 2, alpha = 0.85, color = "grey") + 
   scale_color_discrete(name = "altimeter")
-  #ggsave("output_figures/uncorrected_error_figures/Aircraft_boxplots-uncError.jpg", width = 7, height = 5)
+ggsave(file.path("..", "figures", "Fig3.jpg"), width = 7, height = 5)
 
-names(APE)
-table(APE$Measurer)
 ```
 
 
@@ -145,7 +143,7 @@ lsr.err <- ggplot(laser, aes(x = Altitude, y = TL, color = Aircraft))  +
 ggarrange(baro.err, lsr.err, #SA.repro.gray, BV.repro.gray, BAI.repro.gray, 
                     ##labels = c("SA", "BV", "BAI"),
                     ncol = 1, nrow = 2)
-ggsave("output_figures/uncorrected_error_figures/altitude&error.jpg")
+#ggsave("output_figures/uncorrected_error_figures/altitude&error.jpg")
 ```
 
 
@@ -176,9 +174,8 @@ lsr.pos <- ggplot(laser, aes(x = Altitude, y = TL, color = Position))  +
 
 # Combine & save plots
 ggarrange(baro.pos, lsr.pos, 
-                    ##labels = c("SA", "BV", "BAI"),
                     ncol = 1, nrow = 2)
-ggsave("output_figures/uncorrected_error_figures/position.jpg")
+ggsave(file.path("..", "figures", "Supp_FigS1.jpg"))
 
 ```
 

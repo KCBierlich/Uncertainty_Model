@@ -9,5 +9,6 @@ the_plan = bind_plans(
   report_plan,
   sensitivity_plan,
   validation_sensitivity_plan,
-  eda_plan
+  eda_plan,
+  Sc1_figures_plan 
 )
