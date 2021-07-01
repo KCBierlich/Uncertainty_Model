@@ -139,18 +139,18 @@ Measurer = which analyst measured the calibration object (3 analysts total, meas
 RRR.pix = the length in pixels of the known sized object (calibration object)  
 
 
-"humpback_data.csv" - testing data. Humpback lengths from the Western Antarctic Peninsula.
+*"humpback_data.csv" - testing data. Humpback lengths from the Western Antarctic Peninsula.
 
-*Animal_ID = unique ID for individual whale
-*Reproductive_Class = determined from biopsy sample or from drone images (mom and calf pairs)
-*Species = the species of whale
-*Image = the image ID used for measuring the whale
-*Aircraft = which UAS platform collected the imagery
-*Focal_Length = focal length (mm) of the camera used
-*LaserAlt = the altitude recorded by the laser altimeter. Blanks spaces/NAs indicate no/false reading
-*BaroAlt = the raw relative altitude recorded by the barometer
-*Pixel_Dimension = (mm/px) the Sensor width (mm) / Image width (px) of the camera
-*Launch_Ht = the launch height of the drone, to be added to the BarAlt to get the absolute barometric altitude above the surface of the water
-*Altitude = altitude used in measurement, either LaserAlt or BaroAlt + Launch_Ht
-*Altimeter = which altimeter was used for altitude in measurement; either barometer or laser
-*TL = total length of the whale in meters
++Animal_ID = unique ID for individual whale
++Reproductive_Class = determined from biopsy sample or from drone images (mom and calf pairs)
++Species = the species of whale
++Image = the image ID used for measuring the whale
++Aircraft = which UAS platform collected the imagery
++Focal_Length = focal length (mm) of the camera used
++LaserAlt = the altitude recorded by the laser altimeter. Blanks spaces/NAs indicate no/false reading
++BaroAlt = the raw relative altitude recorded by the barometer
++Pixel_Dimension = (mm/px) the Sensor width (mm) / Image width (px) of the camera
++Launch_Ht = the launch height of the drone, to be added to the BarAlt to get the absolute barometric altitude above the surface of the water
++Altitude = altitude used in measurement, either LaserAlt or BaroAlt + Launch_Ht
++Altimeter = which altimeter was used for altitude in measurement; either barometer or laser
++TL = total length of the whale in meters
