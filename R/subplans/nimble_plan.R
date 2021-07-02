@@ -69,7 +69,4 @@ nimble_plan = drake_plan(
     ), 
     transform = map(fit_mns)
   )
-  
-  
-
 )

@@ -38,6 +38,7 @@ Model 2 = barometer and laser
   
 load model outputs  
 ```{r}
+setwd("/Users/kcbierlich/Dropbox/GitHub/Uncertainty_Model/reports")
 mns_mod1 <- readRDS(file.path("..", "output", "mcmc","length_samples_mns_fit_mns_barometer.rds"))
 mns_mod2 <- readRDS(file.path("..", "output", "mcmc","length_samples_mns_fit_mns_barometer.laser.rds"))
 

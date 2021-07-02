@@ -22,6 +22,7 @@ library(ggpubr)
 "Uncorrected" error plots, meaning before running the uncertainty model.
 ```{r}
 # import training data
+setwd("/Users/kcbierlich/Dropbox/GitHub/Uncertainty_Model/reports")
 APE <- read.csv(file.path("..", "data", "APE-Dataset.csv"))
 
 print(paste("Number of data points in dataset = ", nrow((APE))))

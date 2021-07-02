@@ -10,5 +10,5 @@ the_plan = bind_plans(
   sensitivity_plan,
   validation_sensitivity_plan,
   eda_plan,
-  Sc1_figures_plan 
+  create_plots_plan 
 )
