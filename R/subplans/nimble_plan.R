@@ -20,7 +20,7 @@ nimble_plan = drake_plan(
   }),
 
   # number of mcmc iterations to draw, and samples to thin
-  niter = 1e4,
+  niter = 1e6,
   nthin = 10,
 
   # number of posterior samples to discard during inference
