@@ -120,125 +120,133 @@ the following:
 | Subject  | Measurement  | Image   | PixelCount |
 | :------- | :----------- | :------ | ---------: |
 | Animal A | Total length | Image 1 |  1000.0000 |
-| Animal A | Total length | Image 2 |  1026.3694 |
-| Animal A | Total length | Image 3 |  1011.1654 |
-| Animal A | Total length | Image 4 |   959.4585 |
-| Animal A | Total length | Image 5 |   978.2332 |
+| Animal A | Total length | Image 2 |   987.0678 |
+| Animal A | Total length | Image 3 |   988.1203 |
+| Animal A | Total length | Image 4 |   976.3668 |
+| Animal A | Total length | Image 5 |  1011.2227 |
 
 ## Materials
 
 ### Data:
 
 *APE-Dataset.csv* - training/calibration data for different UAS
-platforms.  
-\* Images = image used for measuring calibration object  
-\* Aircraft = the UAS aircraft used to collect imagery of calibration
-object to measure  
-\* Flight = the flight number/name  
-\* Position = indicates if calibration object is in center of corner of
-image frame  
-\* Focal.length = focal length of camera  
-\* Pix.Dim = pixel dimensions (mm/px), which is the sensor width (mm) /
-image width (px) of the camera  
-\* Baro\_raw = the raw relative altitude recorded by the barometer  
-\* Launch.Ht = the launch height of the drone, to be added to the BarAlt
-to get the absolute barometric altitude above the surface of the water  
-\* Baro + Ht = the baro\_raw + Launch.Ht to get the absolute barometer
-altitude  
-\* Laser\_Alt = the altitude recorded by the laser altimeter. Blanks
-spaces/NAs indicate no/false reading  
-\* Alitude = altitude used in measurement, either Laser\_Alt or Baro +
-Ht  
-\* Alimeter = which altimeter was used for altitude in measurement;
-either barometer or laser  
-\* Measurer = which analyst measured the calibration object (3 analysts
-total, measured each image once)  
-\* RRR.pix = the length in pixels of the known sized object (calibration
-object)
+platforms.
+
+  - Images = image used for measuring calibration object  
+  - Aircraft = the UAS aircraft used to collect imagery of calibration
+    object to measure  
+  - Flight = the flight number/name  
+  - Position = indicates if calibration object is in center of corner of
+    image frame  
+  - Focal.length = focal length of camera  
+  - Pix.Dim = pixel dimensions (mm/px), which is the sensor width (mm) /
+    image width (px) of the camera  
+  - Baro\_raw = the raw relative altitude recorded by the barometer  
+  - Launch.Ht = the launch height of the drone, to be added to the
+    BarAlt to get the absolute barometric altitude above the surface of
+    the water  
+  - Baro + Ht = the baro\_raw + Launch.Ht to get the absolute barometer
+    altitude  
+  - Laser\_Alt = the altitude recorded by the laser altimeter. Blanks
+    spaces/NAs indicate no/false reading  
+  - Alitude = altitude used in measurement, either Laser\_Alt or Baro +
+    Ht  
+  - Alimeter = which altimeter was used for altitude in measurement;
+    either barometer or laser  
+  - Measurer = which analyst measured the calibration object (3 analysts
+    total, measured each image once)  
+  - RRR.pix = the length in pixels of the known sized object
+    (calibration object)
 
 *calibration\_object-measurements.csv* - training/calibration data for
-the LemHex-44 and FreeFly Alta 6 to add to both Ecological Scenarios  
-\* CO.ID = calibration object ID  
-\* CO.Length = the true length of the CO.ID  
-\* Image = image used for measuring calibration object  
-\* Lab = the lab that collected the data  
-\* Cruise = research expedicition ID  
-\* Date = date that imagery was collected of calbiration object  
-\* Flight = the flight number/name  
-\* Pilot = pilot during data collection  
-\* VO = visual observer  
-\* Aircraft = the UAS aircraft used to collect imagery of calibration
-object to measure  
-\* Focal\_length = focal length of camera  
-\* Iw = image width in pixels  
-\* Sw = sensor width in mm  
-\* pix.dim = pixel dimensions; Sw/Iw \* Pix.Dim = pixel dimensions
-(mm/px), which is the sensor width (mm) / image width (px) of the
-camera  
-\* Baro\_raw = the raw relative altitude recorded by the barometer  
-\* Launch.Ht = the launch height of the drone, to be added to the BarAlt
-to get the absolute barometric altitude above the surface of the water  
-\* Baro+Ht = the baro\_raw + Launch.Ht to get the absolute barometer
-altitude  
-\* Laser\_Alt = the altitude recorded by the laser altimeter. Blanks
-spaces/NAs indicate no/false reading \* Alitude = altitude used in
-measurement, either Laser\_Alt or Baro + Ht  
-\* Alimeter = which altimeter was used for altitude in measurement;
-either barometer or laser  
-\* Lpix = the length in pixels of the known sized object (calibration
-object)  
-\* object\_position = indicates if calibration object is in center of
-corner of image frame  
-\* Analyst = analyst that performed the measurement
+the LemHex-44 and FreeFly Alta 6 to add to both Ecological Scenarios
+
+  - CO.ID = calibration object ID  
+  - CO.Length = the true length of the CO.ID  
+  - Image = image used for measuring calibration object  
+  - Lab = the lab that collected the data  
+  - Cruise = research expedicition ID  
+  - Date = date that imagery was collected of calbiration object  
+  - Flight = the flight number/name  
+  - Pilot = pilot during data collection  
+  - VO = visual observer  
+  - Aircraft = the UAS aircraft used to collect imagery of calibration
+    object to measure  
+  - Focal\_length = focal length of camera  
+  - Iw = image width in pixels  
+  - Sw = sensor width in mm  
+  - pix.dim = pixel dimensions; Sw/Iw
+  - Pix.Dim = pixel dimensions (mm/px), which is the sensor width (mm) /
+    image width (px) of the camera  
+  - Baro\_raw = the raw relative altitude recorded by the barometer  
+  - Launch.Ht = the launch height of the drone, to be added to the
+    BarAlt to get the absolute barometric altitude above the surface of
+    the water  
+  - Baro+Ht = the baro\_raw + Launch.Ht to get the absolute barometer
+    altitude  
+  - Laser\_Alt = the altitude recorded by the laser altimeter. Blanks
+    spaces/NAs indicate no/false reading
+  - Alitude = altitude used in measurement, either Laser\_Alt or Baro +
+    Ht  
+  - Alimeter = which altimeter was used for altitude in measurement;
+    either barometer or laser  
+  - Lpix = the length in pixels of the known sized object (calibration
+    object)  
+  - object\_position = indicates if calibration object is in center of
+    corner of image frame  
+  - Analyst = analyst that performed the measurement
 
 *humpback\_data.csv* - testing data for Ecological Scenario 1,
-length-based maturity of humpback whales \* whale = numbered list of
-individuals  
-\* Animal\_ID = unique ID for individual whale  
-\* Reproductive\_Class = determined from biopsy sample or from drone
-images (mom and calf pairs)  
-\* Species = the species of whale  
-\* Image = the image ID used for measuring the whale  
-\* Aircraft = which UAS platform collected the imagery  
-\* Focal\_Length = focal length (mm) of the camera used  
-\* LaserAlt = the altitude recorded by the laser altimeter. Blanks
-spaces/NAs indicate no/false reading  
-\* BaroAlt = the raw relative altitude recorded by the barometer  
-\* Pixel\_Dimension = (mm/px) the Sensor width (mm) / Image width (px)
-of the camera  
-\* Launch\_Ht = the launch height of the drone, to be added to the
-BarAlt to get the absolute barometric altitude above the surface of the
-water  
-\* Altitude = altitude used in measurement, either LaserAlt or BaroAlt +
-Launch\_Ht  
-\* Altimeter = which altimeter was used for altitude in measurement;
-either barometer or laser  
-\* TL = total length of the whale in meters
+length-based maturity of humpback whales
+
+  - whale = numbered list of individuals  
+  - Animal\_ID = unique ID for individual whale  
+  - Reproductive\_Class = determined from biopsy sample or from drone
+    images (mom and calf pairs)  
+  - Species = the species of whale  
+  - Image = the image ID used for measuring the whale  
+  - Aircraft = which UAS platform collected the imagery  
+  - Focal\_Length = focal length (mm) of the camera used  
+  - LaserAlt = the altitude recorded by the laser altimeter. Blanks
+    spaces/NAs indicate no/false reading  
+  - BaroAlt = the raw relative altitude recorded by the barometer  
+  - Pixel\_Dimension = (mm/px) the Sensor width (mm) / Image width (px)
+    of the camera  
+  - Launch\_Ht = the launch height of the drone, to be added to the
+    BarAlt to get the absolute barometric altitude above the surface of
+    the water  
+  - Altitude = altitude used in measurement, either LaserAlt or BaroAlt
+    + Launch\_Ht  
+  - Altimeter = which altimeter was used for altitude in measurement;
+    either barometer or laser  
+  - TL = total length of the whale in meters
 
 *marrs\_amws.csv* - testing data for Ecological Scenario 2,
 population-lelve morphological relationship between rostrum to blowhole
-distance and total body length \* AID = unique ID for individual whale  
-\* Species = the species of whale  
-\* Image = the image ID used for measuring the whale  
-\* Region = location of data collection (WAP = Western Antarctic
-Peninsula)  
-\* Year = year of data collection  
-\* Aircraft = which UAS platform collected the imagery  
-\* TL = total length of the whale in meters  
-\* RB = rostrum to blowhole distance in meters  
-\* BaroAlt = the raw relative altitude recorded by the barometer  
-\* Launch\_Ht = the launch height of the drone, to be added to the
-BarAlt to get the absolute barometric altitude above the surface of the
-water  
-\* LaserAlt = the altitude recorded by the laser altimeter. Blanks
-spaces/NAs indicate no/false reading  
-\* Altitude = altitude used in measurement, either LaserAlt or BaroAlt +
-Launch\_Ht  
-\* Focal\_Length = focal length (mm) of the camera used  
-\* Iw = image width in pixels  
-\* Sw = sensor width in mm  
-\* perDif = percent difference between the altitude recorded by the
-barometer and laser altimeter
+distance and total body length
+
+  - AID = unique ID for individual whale  
+  - Species = the species of whale  
+  - Image = the image ID used for measuring the whale  
+  - Region = location of data collection (WAP = Western Antarctic
+    Peninsula)  
+  - Year = year of data collection  
+  - Aircraft = which UAS platform collected the imagery  
+  - TL = total length of the whale in meters  
+  - RB = rostrum to blowhole distance in meters  
+  - BaroAlt = the raw relative altitude recorded by the barometer  
+  - Launch\_Ht = the launch height of the drone, to be added to the
+    BarAlt to get the absolute barometric altitude above the surface of
+    the water  
+  - LaserAlt = the altitude recorded by the laser altimeter. Blanks
+    spaces/NAs indicate no/false reading  
+  - Altitude = altitude used in measurement, either LaserAlt or BaroAlt
+    + Launch\_Ht  
+  - Focal\_Length = focal length (mm) of the camera used  
+  - Iw = image width in pixels  
+  - Sw = sensor width in mm  
+  - perDif = percent difference between the altitude recorded by the
+    barometer and laser altimeter
 
 ## Steps
 
@@ -258,20 +266,17 @@ a ‘reports’ folder.
     from the model
     
       - Sc1\_output\_figures explores outputs from Ecological Scenario
-        1. Figures are automatically saved in the “figures” folder of
-        the main directory.
+        1.
     
       - fit\_marrs refers to results from Scenario 2
     
       - Uncorrected\_error\_figures explores the APE dataset (training
-        data) before applying the uncertainty model. Figures are
-        automatically saved in the “figures” folder of the main
-        directory.
+        data) before applying the uncertainty model.
 
   - Figures 3-6 and Supplementary FigS1 and FigS2 are automatically
-    generated in the ‘figures’ folders
+    saved in the ‘figures’ folder of the main directory.
 
 ## Contact
 
 KC Bierlich, <kevin.bierlich@oregonstate.edu>  
-<https://github.com/KCBierlich>
+<https://github.com/KCBierlich/Uncertainty_Model>
