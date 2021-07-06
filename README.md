@@ -120,10 +120,10 @@ the following:
 | Subject  | Measurement  | Image   | PixelCount |
 | :------- | :----------- | :------ | ---------: |
 | Animal A | Total length | Image 1 |  1000.0000 |
-| Animal A | Total length | Image 2 |  1011.2207 |
-| Animal A | Total length | Image 3 |   991.5667 |
-| Animal A | Total length | Image 4 |  1034.2079 |
-| Animal A | Total length | Image 5 |  1006.5950 |
+| Animal A | Total length | Image 2 |  1026.3694 |
+| Animal A | Total length | Image 3 |  1011.1654 |
+| Animal A | Total length | Image 4 |   959.4585 |
+| Animal A | Total length | Image 5 |   978.2332 |
 
 ## Materials
 
@@ -155,6 +155,41 @@ either barometer or laser
 total, measured each image once)  
 \* RRR.pix = the length in pixels of the known sized object (calibration
 object)
+
+*calibration\_object-measurements.csv* - training/calibration data for
+the LemHex-44 and FreeFly Alta 6 to add to both Ecological Scenarios  
+\* CO.ID = calibration object ID  
+\* CO.Length = the true length of the CO.ID  
+\* Image = image used for measuring calibration object  
+\* Lab = the lab that collected the data  
+\* Cruise = research expedicition ID  
+\* Date = date that imagery was collected of calbiration object  
+\* Flight = the flight number/name  
+\* Pilot = pilot during data collection  
+\* VO = visual observer  
+\* Aircraft = the UAS aircraft used to collect imagery of calibration
+object to measure  
+\* Focal\_length = focal length of camera  
+\* Iw = image width in pixels  
+\* Sw = sensor width in mm  
+\* pix.dim = pixel dimensions; Sw/Iw \* Pix.Dim = pixel dimensions
+(mm/px), which is the sensor width (mm) / image width (px) of the
+camera  
+\* Baro\_raw = the raw relative altitude recorded by the barometer  
+\* Launch.Ht = the launch height of the drone, to be added to the BarAlt
+to get the absolute barometric altitude above the surface of the water  
+\* Baro+Ht = the baro\_raw + Launch.Ht to get the absolute barometer
+altitude  
+\* Laser\_Alt = the altitude recorded by the laser altimeter. Blanks
+spaces/NAs indicate no/false reading \* Alitude = altitude used in
+measurement, either Laser\_Alt or Baro + Ht  
+\* Alimeter = which altimeter was used for altitude in measurement;
+either barometer or laser  
+\* Lpix = the length in pixels of the known sized object (calibration
+object)  
+\* object\_position = indicates if calibration object is in center of
+corner of image frame  
+\* Analyst = analyst that performed the measurement
 
 *humpback\_data.csv* - testing data for Ecological Scenario 1,
 length-based maturity of humpback whales \* whale = numbered list of
@@ -232,6 +267,9 @@ a ‘reports’ folder.
         data) before applying the uncertainty model. Figures are
         automatically saved in the “figures” folder of the main
         directory.
+
+  - Figures 3-6 and Supplementary FigS1 and FigS2 are automatically
+    generated in the ‘figures’ folders
 
 ## Contact
 
