@@ -147,6 +147,34 @@ _APE-Dataset.csv_ - training/calibration data for different UAS platforms.
  * RRR.pix = the length in pixels of the known sized object (calibration object)    
   
 
+_calibration_object-measurements.csv_ - training/calibration data for the LemHex-44 and FreeFly Alta 6 to add to both Ecological Scenarios  
+  * CO.ID = calibration object ID  
+  * CO.Length = the true length of the CO.ID  
+  * Image = image used for measuring calibration object  
+  * Lab = the lab that collected the data  
+  * Cruise = research expedicition ID  
+  * Date = date that imagery was collected of calbiration object  
+  * Flight = the flight number/name  
+  * Pilot = pilot during data collection  
+  * VO = visual observer  
+  * Aircraft = the UAS aircraft used to collect imagery of calibration object to measure  
+  * Focal_length = focal length of camera  
+  * Iw = image width in pixels  
+  * Sw = sensor width in mm  
+  * pix.dim = pixel dimensions; Sw/Iw
+  * Pix.Dim = pixel dimensions (mm/px), which is the sensor width (mm) / image width (px) of the camera  
+  * Baro_raw = the raw relative altitude recorded by the barometer  
+  * Launch.Ht = the launch height of the drone, to be added to the BarAlt to get the absolute barometric altitude above the surface of the water  
+  * Baro+Ht = the baro_raw + Launch.Ht to get the absolute barometer altitude  
+  * Laser_Alt = the altitude recorded by the laser altimeter. Blanks spaces/NAs indicate no/false reading
+  * Alitude = altitude used in measurement, either Laser_Alt or Baro + Ht  
+  * Alimeter = which altimeter was used for altitude in measurement; either barometer or laser  
+  * Lpix = the length in pixels of the known sized object (calibration object)    
+  * object_position = indicates if calibration object is in center of corner of image frame  
+  * Analyst = analyst that performed the measurement
+ 
+
+
 _humpback_data.csv_ - testing data for Ecological Scenario 1, length-based maturity of humpback whales
  * whale = numbered list of individuals  
  * Animal_ID = unique ID for individual whale  
@@ -192,11 +220,13 @@ This will generate an "output" folder that contains an 'mcmc' folder and a 'repo
   * The 'mcmc' folder contains all the .rds outputs from the model (note that "fit_mns" refers to humpbacks in Ecological Scenario 1, while "fit_marrs" refers to Antarctic minke whales in Ecological Scenario 2), and a 'diagnostics' folder with .html files providing diagnostic comparisons between the different model outputs (e.g., barometer only, barometer and laser, uninformative priors, etc.).   
   
   * The 'reports' folder contains .html files to evaluate the results from the model  
-      + Sc1_output_figures explores outputs from Ecological Scenario 1. Figures are automatically saved in the "figures" folder of the main directory.  
+      + Sc1_output_figures explores outputs from Ecological Scenario 1. Figures are automatically saved in the "figures" folder of the main directory.
       
       + fit_marrs refers to results from Scenario 2  
       
       + Uncorrected_error_figures explores the APE dataset (training data) before applying the uncertainty model. Figures are automatically saved in the "figures" folder of the main directory.  
+      
+  * Figures 3-6 and Supplementary FigS1 and FigS2 are automatically generated in the 'figures' folders
   
 
 
